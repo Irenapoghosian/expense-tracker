@@ -1,19 +1,21 @@
 //
-//  AddTransactionView.swift
+//  EditTransactionView.swift
 //  ExpenseTracker
 //
-//  Created by Iren Poghosyan on 14.09.26.
+//  Created by Iren Poghosyan on 15.09.26.
 //
+
 
 import SwiftUI
 import CoreData
 
-struct AddTransactionView: View {
-    @Environment(\.dismiss) private var dismiss
-    @StateObject private var viewModel: AddTransactionViewModel
 
-    init(repository: TransactionRepository) {
-        _viewModel = StateObject(wrappedValue: AddTransactionViewModel(repository: repository))
+struct EditTransactionView: View {
+    @Environment(\.dismiss) private var dismiss
+    @StateObject private var viewModel: EditTransactionViewModel
+
+    init(transaction: TransactionEntity, repository: TransactionRepository) {
+        _viewModel = StateObject(wrappedValue: EditTransactionViewModel(transaction: transaction, repository: repository))
     }
 
     var body: some View {
@@ -32,7 +34,7 @@ struct AddTransactionView: View {
                     DatePicker("Date", selection: $viewModel.date, displayedComponents: .date)
                 }
             }
-            .navigationTitle("Add Transaction")
+            .navigationTitle("Edit Transaction")
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button("Cancel") {
@@ -55,8 +57,4 @@ struct AddTransactionView: View {
             }
         }
     }
-}
-
-#Preview {
-    AddTransactionView(repository: CoreDataTransactionRepository(context: PersistenceController.preview.container.viewContext))
 }

@@ -12,6 +12,7 @@ struct ContentView: View {
     @Environment(\.managedObjectContext) private var viewContext
     @StateObject private var viewModel: TransactionListViewModel
     @State private var showingAddTransaction = false
+    @State private var transactionToEdit: TransactionEntity?
     private let repository: TransactionRepository
 
     init(repository: TransactionRepository) {
@@ -58,17 +59,30 @@ struct ContentView: View {
                 } else {
                     List {
                         ForEach(viewModel.filteredTransactions) { transaction in
-                            HStack {
-                                VStack(alignment: .leading) {
+                            let category = Category.from(transaction.category)
+                            HStack(spacing: 12) {
+                                Image(systemName: category.icon)
+                                    .font(.system(size: 18))
+                                    .foregroundColor(.white)
+                                    .frame(width: 36, height: 36)
+                                    .background(category.color)
+                                    .clipShape(Circle())
+                                
+                                VStack(alignment: .leading, spacing: 2) {
                                     Text(transaction.title ?? "Untitled")
                                         .font(.headline)
-                                    Text(transaction.category ?? "other")
+                                    Text(category.displayName)
                                         .font(.subheadline)
                                         .foregroundColor(.secondary)
                                 }
                                 Spacer()
                                 Text(transaction.amount, format: .currency(code: "USD"))
-                                    .font(.body)
+                                    .font(.body.weight(.medium))
+                            }
+                            .padding(.vertical, 4)
+                            .contentShape(Rectangle())
+                            .onTapGesture {
+                                transactionToEdit = transaction
                             }
                         }
                         .onDelete(perform: viewModel.deleteTransactions)
@@ -90,6 +104,11 @@ struct ContentView: View {
                 viewModel.fetchTransactions()
             }) {
                 AddTransactionView(repository: repository)
+            }
+            .sheet(item: $transactionToEdit, onDismiss: {
+                viewModel.fetchTransactions()
+            }) { transaction in
+                EditTransactionView(transaction: transaction, repository: repository)
             }
             .alert("Error", isPresented: .constant(viewModel.errorMessage != nil)) {
                 Button("OK") { viewModel.errorMessage = nil }

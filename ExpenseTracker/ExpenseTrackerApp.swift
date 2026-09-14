@@ -13,10 +13,21 @@ struct ExpenseTrackerApp: App {
     let persistenceController = PersistenceController.shared
 
     var body: some Scene {
-        WindowGroup {
-            ContentView(repository: CoreDataTransactionRepository(context: persistenceController.container.viewContext))
-                    .environment(\.managedObjectContext, persistenceController.container.viewContext)
+            WindowGroup {
+                let repository = CoreDataTransactionRepository(context: persistenceController.container.viewContext)
+                
+                TabView {
+                    ContentView(repository: repository)
+                        .tabItem {
+                            Label("Expenses", systemImage: "list.bullet")
+                        }
+                    
+                    CategoryBreakdownView(repository: repository)
+                        .tabItem {
+                            Label("Breakdown", systemImage: "chart.pie")
+                        }
                 }
-
+                .environment(\.managedObjectContext, persistenceController.container.viewContext)
+            }
+        }
     }
-}
