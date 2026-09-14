@@ -19,10 +19,10 @@ final class AddTransactionViewModel: ObservableObject {
     
     let categories = ["food", "transport", "entertainment", "bills", "other"]
     
-    private let viewContext: NSManagedObjectContext
+    private let repository: TransactionRepository
     
-    init(context: NSManagedObjectContext) {
-        self.viewContext = context
+    init(repository: TransactionRepository) {
+        self.repository = repository
     }
     
     var isValid: Bool {
@@ -37,7 +37,7 @@ final class AddTransactionViewModel: ObservableObject {
             return false
         }
         
-        let newTransaction = TransactionEntity(context: viewContext)
+        let newTransaction = repository.makeNewTransaction()
         newTransaction.id = UUID()
         newTransaction.title = title.trimmingCharacters(in: .whitespaces)
         newTransaction.amount = Double(amount) ?? 0
@@ -45,7 +45,7 @@ final class AddTransactionViewModel: ObservableObject {
         newTransaction.date = date
         
         do {
-            try viewContext.save()
+            try repository.save(newTransaction)
             return true
         } catch {
             errorMessage = "Couldn't save transaction. Please try again."

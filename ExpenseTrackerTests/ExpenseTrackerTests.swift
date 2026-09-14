@@ -12,16 +12,19 @@ import CoreData
 final class TransactionListViewModelTests: XCTestCase {
     
     var context: NSManagedObjectContext!
+    var repository: TransactionRepository!
     var sut: TransactionListViewModel!
     
     override func setUp() {
         super.setUp()
         context = PersistenceController(inMemory: true).container.viewContext
-        sut = TransactionListViewModel(context: context)
+        repository = CoreDataTransactionRepository(context: context)
+        sut = TransactionListViewModel(repository: repository)
     }
     
     override func tearDown() {
         context = nil
+        repository = nil
         sut = nil
         super.tearDown()
     }

@@ -12,8 +12,8 @@ struct AddTransactionView: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject private var viewModel: AddTransactionViewModel
 
-    init(context: NSManagedObjectContext) {
-        _viewModel = StateObject(wrappedValue: AddTransactionViewModel(context: context))
+    init(repository: TransactionRepository) {
+        _viewModel = StateObject(wrappedValue: AddTransactionViewModel(repository: repository))
     }
 
     var body: some View {
@@ -57,5 +57,5 @@ struct AddTransactionView: View {
 }
 
 #Preview {
-    AddTransactionView(context: PersistenceController.preview.container.viewContext)
+    AddTransactionView(repository: CoreDataTransactionRepository(context: PersistenceController.preview.container.viewContext))
 }

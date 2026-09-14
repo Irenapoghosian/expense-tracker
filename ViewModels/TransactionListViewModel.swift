@@ -16,10 +16,10 @@ final class TransactionListViewModel: ObservableObject {
     
     let categories = ["all", "food", "transport", "entertainment", "bills", "other"]
     
-    private var viewContext: NSManagedObjectContext
+    private var repository: TransactionRepository
     
-    init(context: NSManagedObjectContext) {
-        self.viewContext = context
+    init(repository: TransactionRepository) {
+        self.repository = repository
         fetchTransactions()
     }
     
@@ -35,11 +35,8 @@ final class TransactionListViewModel: ObservableObject {
     }
     
     func fetchTransactions() {
-        let request: NSFetchRequest<TransactionEntity> = TransactionEntity.fetchRequest()
-        request.sortDescriptors = [NSSortDescriptor(keyPath: \TransactionEntity.date, ascending: false)]
-        
         do {
-            transactions = try viewContext.fetch(request)
+            transactions = try repository.fetchAll()
         } catch {
             errorMessage = "Couldn't load transactions. Please try again."
         }
@@ -47,10 +44,11 @@ final class TransactionListViewModel: ObservableObject {
     
     func deleteTransactions(at offsets: IndexSet) {
         let itemsToDelete = offsets.map { filteredTransactions[$0] }
-        itemsToDelete.forEach(viewContext.delete)
         
         do {
-            try viewContext.save()
+            for item in itemsToDelete {
+                try repository.delete(item)
+            }
             fetchTransactions()
         } catch {
             errorMessage = "Couldn't delete transactions. Please try again."

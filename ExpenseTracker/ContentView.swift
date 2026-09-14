@@ -12,9 +12,11 @@ struct ContentView: View {
     @Environment(\.managedObjectContext) private var viewContext
     @StateObject private var viewModel: TransactionListViewModel
     @State private var showingAddTransaction = false
+    private let repository: TransactionRepository
 
-    init(context: NSManagedObjectContext) {
-        _viewModel = StateObject(wrappedValue: TransactionListViewModel(context: context))
+    init(repository: TransactionRepository) {
+        self.repository = repository
+        _viewModel = StateObject(wrappedValue: TransactionListViewModel(repository: repository))
     }
 
     var body: some View {
@@ -87,7 +89,7 @@ struct ContentView: View {
             .sheet(isPresented: $showingAddTransaction, onDismiss: {
                 viewModel.fetchTransactions()
             }) {
-                AddTransactionView(context: viewContext)
+                AddTransactionView(repository: repository)
             }
             .alert("Error", isPresented: .constant(viewModel.errorMessage != nil)) {
                 Button("OK") { viewModel.errorMessage = nil }
@@ -99,5 +101,5 @@ struct ContentView: View {
 }
 
 #Preview {
-    ContentView(context: PersistenceController.preview.container.viewContext)
+    ContentView(repository: CoreDataTransactionRepository(context: PersistenceController.preview.container.viewContext))
 }

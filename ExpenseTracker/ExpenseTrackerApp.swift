@@ -14,8 +14,9 @@ struct ExpenseTrackerApp: App {
 
     var body: some Scene {
         WindowGroup {
-            ContentView(context: persistenceController.container.viewContext)
-                .environment(\.managedObjectContext, persistenceController.container.viewContext)
-        }
+            ContentView(repository: CoreDataTransactionRepository(context: persistenceController.container.viewContext))
+                    .environment(\.managedObjectContext, persistenceController.container.viewContext)
+                }
+
     }
 }
