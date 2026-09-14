@@ -10,33 +10,18 @@ import CoreData
 
 struct ContentView: View {
     @Environment(\.managedObjectContext) private var viewContext
-
-    @FetchRequest(
-        sortDescriptors: [NSSortDescriptor(keyPath: \TransactionEntity.date, ascending: false)],
-        animation: .default)
-    private var transactions: FetchedResults<TransactionEntity>
-    
+    @StateObject private var viewModel: TransactionListViewModel
     @State private var showingAddTransaction = false
-    @State private var selectedCategory: String = "all"
-    
-    private let categories = ["all", "food", "transport", "entertainment", "bills", "other"]
-    
-    private var filteredTransactions: [TransactionEntity] {
-        if selectedCategory == "all" {
-            return Array(transactions)
-        }
-        return transactions.filter { $0.category == selectedCategory }
-    }
-    
-    private var totalAmount: Double {
-        filteredTransactions.reduce(0) { $0 + $1.amount }
+
+    init(context: NSManagedObjectContext) {
+        _viewModel = StateObject(wrappedValue: TransactionListViewModel(context: context))
     }
 
     var body: some View {
         NavigationView {
             VStack(spacing: 0) {
-                Picker("Category", selection: $selectedCategory) {
-                    ForEach(categories, id: \.self) { cat in
+                Picker("Category", selection: $viewModel.selectedCategory) {
+                    ForEach(viewModel.categories, id: \.self) { cat in
                         Text(cat.capitalized).tag(cat)
                     }
                 }
@@ -49,28 +34,43 @@ struct ContentView: View {
                         .font(.subheadline)
                         .foregroundColor(.secondary)
                     Spacer()
-                    Text(totalAmount, format: .currency(code: "USD"))
+                    Text(viewModel.totalAmount, format: .currency(code: "USD"))
                         .font(.headline)
                 }
                 .padding(.horizontal)
                 .padding(.vertical, 4)
 
-                List {
-                    ForEach(filteredTransactions) { transaction in
-                        HStack {
-                            VStack(alignment: .leading) {
-                                Text(transaction.title ?? "Untitled")
-                                    .font(.headline)
-                                Text(transaction.category ?? "other")
-                                    .font(.subheadline)
-                                    .foregroundColor(.secondary)
-                            }
-                            Spacer()
-                            Text(transaction.amount, format: .currency(code: "USD"))
-                                    .font(.body)
-                        }
+                if viewModel.filteredTransactions.isEmpty {
+                    Spacer()
+                    VStack(spacing: 8) {
+                        Image(systemName: "tray")
+                            .font(.system(size: 40))
+                            .foregroundColor(.secondary)
+                        Text("No transactions yet")
+                            .font(.headline)
+                        Text("Tap + to add your first expense")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
                     }
-                    .onDelete(perform: deleteTransactions)
+                    Spacer()
+                } else {
+                    List {
+                        ForEach(viewModel.filteredTransactions) { transaction in
+                            HStack {
+                                VStack(alignment: .leading) {
+                                    Text(transaction.title ?? "Untitled")
+                                        .font(.headline)
+                                    Text(transaction.category ?? "other")
+                                        .font(.subheadline)
+                                        .foregroundColor(.secondary)
+                                }
+                                Spacer()
+                                Text(transaction.amount, format: .currency(code: "USD"))
+                                    .font(.body)
+                            }
+                        }
+                        .onDelete(perform: viewModel.deleteTransactions)
+                    }
                 }
             }
             .navigationTitle("Expenses")
@@ -84,26 +84,20 @@ struct ContentView: View {
                     }
                 }
             }
-            .sheet(isPresented: $showingAddTransaction) {
-                    AddTransactionView()
+            .sheet(isPresented: $showingAddTransaction, onDismiss: {
+                viewModel.fetchTransactions()
+            }) {
+                AddTransactionView(context: viewContext)
             }
-        }
-    }
-
-    private func deleteTransactions(offsets: IndexSet) {
-        withAnimation {
-            offsets.map { filteredTransactions[$0] }.forEach(viewContext.delete)
-
-            do {
-                try viewContext.save()
-            } catch {
-                let nsError = error as NSError
-                fatalError("Unresolved error \(nsError), \(nsError.userInfo)")
+            .alert("Error", isPresented: .constant(viewModel.errorMessage != nil)) {
+                Button("OK") { viewModel.errorMessage = nil }
+            } message: {
+                Text(viewModel.errorMessage ?? "")
             }
         }
     }
 }
 
 #Preview {
-    ContentView().environment(\.managedObjectContext, PersistenceController.preview.container.viewContext)
+    ContentView(context: PersistenceController.preview.container.viewContext)
 }

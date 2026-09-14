@@ -9,68 +9,53 @@ import SwiftUI
 import CoreData
 
 struct AddTransactionView: View {
-    @Environment(\.managedObjectContext) private var viewContext
     @Environment(\.dismiss) private var dismiss
-    
-    @State private var title: String = ""
-    @State private var amount: String = ""
-    @State private var category: String = "food"
-    @State private var date: Date = Date()
-    
-    private let categories = ["food", "transport", "entertainment", "bills", "other"]
-    
+    @StateObject private var viewModel: AddTransactionViewModel
+
+    init(context: NSManagedObjectContext) {
+        _viewModel = StateObject(wrappedValue: AddTransactionViewModel(context: context))
+    }
+
     var body: some View {
         NavigationView {
             Form {
                 Section(header: Text("Details")) {
-                    TextField("Title", text: $title)
-                    TextField("Amount", text: $amount)
+                    TextField("Title", text: $viewModel.title)
+                    TextField("Amount", text: $viewModel.amount)
                         .keyboardType(.decimalPad)
-                    Picker("Category", selection: $category) {
-                        ForEach(categories, id: \.self) { cat in
+                    Picker("Category", selection: $viewModel.category) {
+                        ForEach(viewModel.categories, id: \.self) { cat in
                             Text(cat.capitalized).tag(cat)
                         }
                     }
-                    DatePicker("Date", selection: $date, displayedComponents: .date)
+                    DatePicker("Date", selection: $viewModel.date, displayedComponents: .date)
                 }
             }
             .navigationTitle("Add Transaction")
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Cnacel") {
+                    Button("Cancel") {
                         dismiss()
                     }
                 }
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Save") {
-                        saveTransaction()
+                        if viewModel.save() {
+                            dismiss()
+                        }
                     }
-                    .disabled(title.isEmpty || amount.isEmpty)
+                    .disabled(!viewModel.isValid)
                 }
             }
-        }
-    }
-    
-    private func saveTransaction() {
-        withAnimation {
-            let newTransaction = TransactionEntity(context: viewContext)
-            newTransaction.id = UUID()
-            newTransaction.title = title
-            newTransaction.amount = Double(amount) ?? 0
-            newTransaction.category = category
-            newTransaction.date = date
-            
-            do {
-                try viewContext.save()
-                dismiss()
-            } catch {
-                let nsError = error as NSError
-                fatalError("Unresolved error \(nsError), \(nsError.userInfo)")
+            .alert("Error", isPresented: .constant(viewModel.errorMessage != nil)) {
+                Button("OK") { viewModel.errorMessage = nil }
+            } message: {
+                Text(viewModel.errorMessage ?? "")
             }
         }
     }
 }
 
 #Preview {
-    AddTransactionView().environment(\.managedObjectContext, PersistenceController.preview.container.viewContext)
+    AddTransactionView(context: PersistenceController.preview.container.viewContext)
 }
