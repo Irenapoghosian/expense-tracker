@@ -12,55 +12,53 @@ struct ContentView: View {
     @Environment(\.managedObjectContext) private var viewContext
 
     @FetchRequest(
-        sortDescriptors: [NSSortDescriptor(keyPath: \Item.timestamp, ascending: true)],
+        sortDescriptors: [NSSortDescriptor(keyPath: \TransactionEntity.date, ascending: false)],
         animation: .default)
-    private var items: FetchedResults<Item>
+    private var transactions: FetchedResults<TransactionEntity>
+    
+    @State private var showingAddTransaction = false
 
     var body: some View {
         NavigationView {
             List {
-                ForEach(items) { item in
-                    NavigationLink {
-                        Text("Item at \(item.timestamp!, formatter: itemFormatter)")
-                    } label: {
-                        Text(item.timestamp!, formatter: itemFormatter)
+                ForEach(transactions) { transaction in
+                    HStack {
+                        VStack(alignment: .leading) {
+                            Text(transaction.title ?? "Unitled")
+                                .font(.headline)
+                            Text(transaction.category ?? "other")
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+                    }
+                    Spacer()
+                        Text(transaction.amount, format: .currency(code: "USD"))
+                            .font(.body)
                     }
                 }
-                .onDelete(perform: deleteItems)
+                .onDelete(perform: deleteTransactions)
             }
+            .navigationTitle("Expenses")
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     EditButton()
                 }
                 ToolbarItem {
-                    Button(action: addItem) {
-                        Label("Add Item", systemImage: "plus")
+                    Button(action: { showingAddTransaction = true }) {
+                        Label("Add Transaction", systemImage: "plus")
                     }
                 }
             }
-            Text("Select an item")
-        }
-    }
-
-    private func addItem() {
-        withAnimation {
-            let newItem = Item(context: viewContext)
-            newItem.timestamp = Date()
-
-            do {
-                try viewContext.save()
-            } catch {
-                // Replace this implementation with code to handle the error appropriately.
-                // fatalError() causes the application to generate a crash log and terminate. You should not use this function in a shipping application, although it may be useful during development.
-                let nsError = error as NSError
-                fatalError("Unresolved error \(nsError), \(nsError.userInfo)")
+            .sheet(isPresented: $showingAddTransaction) {
+                AddTransactionView()
             }
+            Text("Select a transaction")
         }
     }
 
-    private func deleteItems(offsets: IndexSet) {
+
+    private func deleteTransactions(offsets: IndexSet) {
         withAnimation {
-            offsets.map { items[$0] }.forEach(viewContext.delete)
+            offsets.map { transactions[$0] }.forEach(viewContext.delete)
 
             do {
                 try viewContext.save()
@@ -74,12 +72,6 @@ struct ContentView: View {
     }
 }
 
-private let itemFormatter: DateFormatter = {
-    let formatter = DateFormatter()
-    formatter.dateStyle = .short
-    formatter.timeStyle = .medium
-    return formatter
-}()
 
 #Preview {
     ContentView().environment(\.managedObjectContext, PersistenceController.preview.container.viewContext)
