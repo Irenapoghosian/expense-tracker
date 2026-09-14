@@ -17,25 +17,61 @@ struct ContentView: View {
     private var transactions: FetchedResults<TransactionEntity>
     
     @State private var showingAddTransaction = false
+    @State private var selectedCategory: String = "all"
+    
+    private let categories = ["all", "food", "transport", "entertainment", "bills", "other"]
+    
+    private var filteredTransactions: [TransactionEntity] {
+        if selectedCategory == "all" {
+            return Array(transactions)
+        }
+        return transactions.filter { $0.category == selectedCategory }
+    }
+    
+    private var totalAmount: Double {
+        filteredTransactions.reduce(0) { $0 + $1.amount }
+    }
 
     var body: some View {
         NavigationView {
-            List {
-                ForEach(transactions) { transaction in
-                    HStack {
-                        VStack(alignment: .leading) {
-                            Text(transaction.title ?? "Unitled")
-                                .font(.headline)
-                            Text(transaction.category ?? "other")
-                                .font(.subheadline)
-                                .foregroundColor(.secondary)
-                    }
-                    Spacer()
-                        Text(transaction.amount, format: .currency(code: "USD"))
-                            .font(.body)
+            VStack(spacing: 0) {
+                Picker("Category", selection: $selectedCategory) {
+                    ForEach(categories, id: \.self) { cat in
+                        Text(cat.capitalized).tag(cat)
                     }
                 }
-                .onDelete(perform: deleteTransactions)
+                .pickerStyle(.segmented)
+                .padding(.horizontal)
+                .padding(.top, 8)
+
+                HStack {
+                    Text("Total")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                    Spacer()
+                    Text(totalAmount, format: .currency(code: "USD"))
+                        .font(.headline)
+                }
+                .padding(.horizontal)
+                .padding(.vertical, 4)
+
+                List {
+                    ForEach(filteredTransactions) { transaction in
+                        HStack {
+                            VStack(alignment: .leading) {
+                                Text(transaction.title ?? "Untitled")
+                                    .font(.headline)
+                                Text(transaction.category ?? "other")
+                                    .font(.subheadline)
+                                    .foregroundColor(.secondary)
+                            }
+                            Spacer()
+                            Text(transaction.amount, format: .currency(code: "USD"))
+                                    .font(.body)
+                        }
+                    }
+                    .onDelete(perform: deleteTransactions)
+                }
             }
             .navigationTitle("Expenses")
             .toolbar {
@@ -49,29 +85,24 @@ struct ContentView: View {
                 }
             }
             .sheet(isPresented: $showingAddTransaction) {
-                AddTransactionView()
+                    AddTransactionView()
             }
-            Text("Select a transaction")
         }
     }
 
-
     private func deleteTransactions(offsets: IndexSet) {
         withAnimation {
-            offsets.map { transactions[$0] }.forEach(viewContext.delete)
+            offsets.map { filteredTransactions[$0] }.forEach(viewContext.delete)
 
             do {
                 try viewContext.save()
             } catch {
-                // Replace this implementation with code to handle the error appropriately.
-                // fatalError() causes the application to generate a crash log and terminate. You should not use this function in a shipping application, although it may be useful during development.
                 let nsError = error as NSError
                 fatalError("Unresolved error \(nsError), \(nsError.userInfo)")
             }
         }
     }
 }
-
 
 #Preview {
     ContentView().environment(\.managedObjectContext, PersistenceController.preview.container.viewContext)
