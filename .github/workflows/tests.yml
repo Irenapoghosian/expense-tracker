@@ -12,6 +12,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: List simulator runtimes
+        run: xcrun simctl list runtimes
+
+      - name: List simulator devices
+        run: xcrun simctl list devices
+
       - name: Run tests
         run: |
           xcodebuild test \
