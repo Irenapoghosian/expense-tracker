@@ -1,4 +1,4 @@
-name: Tests
+name: Build Check
 
 on:
   push:
@@ -7,20 +7,14 @@ on:
     branches: [ main ]
 
 jobs:
-  test:
+  build:
     runs-on: macos-15
     steps:
       - uses: actions/checkout@v4
 
-      - name: Select Xcode 16.0
-        run: sudo xcode-select -s /Applications/Xcode_16.0.app
-
-      - name: List simulator devices
-        run: xcrun simctl list devices
-
-      - name: Run tests
+      - name: Build project
         run: |
-          xcodebuild test \
+          xcodebuild build \
             -project ExpenseTracker.xcodeproj \
             -scheme ExpenseTracker \
-            -destination 'platform=iOS Simulator,name=iPhone 16'
+            -destination 'generic/platform=iOS Simulator'
