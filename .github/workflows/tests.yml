@@ -12,6 +12,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: List available Xcode versions
+        run: ls /Applications | grep Xcode
+
       - name: Run tests
         run: |
           xcodebuild test \
