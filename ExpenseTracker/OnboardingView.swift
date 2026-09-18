@@ -15,6 +15,38 @@ struct OnboardingPage {
     let description: String
 }
 
+
+private struct OnboardingPageView: View {
+    let page: OnboardingPage
+    
+    var body: some View {
+        VStack(spacing: 24) {
+            Spacer()
+            
+            Image(systemName: page.icon)
+                .font(.system(size: 70))
+                .foregroundColor(.white)
+                .frame(width: 140, height: 140)
+                .background(page.color.gradient)
+                .clipShape(Circle())
+                .shadow(color: page.color.opacity(0.4), radius: 20, y: 10)
+            
+            Text(page.title)
+                .font(.title.bold())
+                .multilineTextAlignment(.center)
+            
+            Text(page.description)
+                .font(.body)
+                .foregroundColor(.secondary)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 32)
+            
+            Spacer()
+            Spacer()
+        }
+    }
+}
+
 struct OnboardingView: View {
     @Binding var isPresented: Bool
     @State private var currentPage = 0
@@ -41,71 +73,49 @@ struct OnboardingView: View {
     ]
 
     var body: some View {
-        ZStack {
-            TabView(selection: $currentPage) {
-                ForEach(pages.indices, id: \.self) { index in
-                    VStack(spacing: 24) {
-                        Spacer()
-
-                        Image(systemName: pages[index].icon)
-                            .font(.system(size: 70))
+            ZStack {
+                TabView(selection: $currentPage) {
+                    ForEach(pages.indices, id: \.self) { index in
+                        OnboardingPageView(page: pages[index])
+                            .tag(index)
+                    }
+                }
+                .tabViewStyle(.page(indexDisplayMode: .always))
+                .animation(.easeInOut, value: currentPage)
+     
+                VStack {
+                    Spacer()
+                    Button(action: {
+                        if currentPage < pages.count - 1 {
+                            withAnimation { currentPage += 1 }
+                        } else {
+                            withAnimation { isPresented = false }
+                        }
+                    }) {
+                        Text(currentPage < pages.count - 1 ? "Next" : "Get Started")
+                            .font(.headline)
                             .foregroundColor(.white)
-                            .frame(width: 140, height: 140)
-                            .background(pages[index].color.gradient)
-                            .clipShape(Circle())
-                            .shadow(color: pages[index].color.opacity(0.4), radius: 20, y: 10)
-
-                        Text(pages[index].title)
-                            .font(.title.bold())
-                            .multilineTextAlignment(.center)
-
-                        Text(pages[index].description)
-                            .font(.body)
-                            .foregroundColor(.secondary)
-                            .multilineTextAlignment(.center)
-                            .padding(.horizontal, 32)
-
-                        Spacer()
-                        Spacer()
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(pages[currentPage].color.gradient)
+                            .clipShape(RoundedRectangle(cornerRadius: 14))
                     }
-                    .tag(index)
-                }
-            }
-            .tabViewStyle(.page(indexDisplayMode: .always))
-            .animation(.easeInOut, value: currentPage)
-
-            VStack {
-                Spacer()
-                Button(action: {
+                    .padding(.horizontal, 32)
+                    .padding(.bottom, 50)
+     
                     if currentPage < pages.count - 1 {
-                        withAnimation { currentPage += 1 }
-                    } else {
-                        withAnimation { isPresented = false }
+                        Button("Skip") {
+                            withAnimation { isPresented = false }
+                        }
+                        .foregroundColor(.secondary)
+                        .padding(.bottom, 20)
                     }
-                }) {
-                    Text(currentPage < pages.count - 1 ? "Next" : "Get Started")
-                        .font(.headline)
-                        .foregroundColor(.white)
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(pages[currentPage].color.gradient)
-                        .clipShape(RoundedRectangle(cornerRadius: 14))
-                }
-                .padding(.horizontal, 32)
-                .padding(.bottom, 50)
-
-                if currentPage < pages.count - 1 {
-                    Button("Skip") {
-                        withAnimation { isPresented = false }
-                    }
-                    .foregroundColor(.secondary)
-                    .padding(.bottom, 20)
                 }
             }
         }
     }
-}
-
-#Preview {
-    OnboardingView(isPresented: .constant(true))
-}
+     
+    #Preview {
+        OnboardingView(isPresented: .constant(true))
+    }
+     
