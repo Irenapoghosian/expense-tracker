@@ -56,13 +56,13 @@ final class BudgetViewModel: ObservableObject {
                 return BudgetStatus(category: category, limit: budget.limit, spent: spent)
             }.sorted { $0.category < $1.category }
         } catch {
-            errorMessage = "Couldn't load budgets. Please try again."
+            errorMessage = (error as? AppError)?.errorDescription ?? AppError.persistence(error).errorDescription
         }
     }
     
     func setBudget(category: String, limit: Double) {
         guard limit > 0 else {
-            errorMessage = "Budget must be greater than 0."
+            errorMessage = AppError.invalidInput("Budget must be greater than 0.").errorDescription
             return
         }
         
@@ -70,7 +70,7 @@ final class BudgetViewModel: ObservableObject {
             try repository.saveBudget(category: category, limit: limit)
             loadBudgets()
         } catch {
-            errorMessage = "Couldn't save budget. Please try again."
+            errorMessage = (error as? AppError)?.errorDescription ?? AppError.persistence(error).errorDescription
         }
     }
 }

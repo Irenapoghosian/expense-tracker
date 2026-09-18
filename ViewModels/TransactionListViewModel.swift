@@ -49,7 +49,8 @@ final class TransactionListViewModel: ObservableObject {
         do {
             transactions = try repository.fetchAll()
         } catch {
-            errorMessage = "Couldn't load transactions. Please try again."
+            errorMessage = (error as? AppError)?.errorDescription ?? AppError.persistence(error).errorDescription
+
         }
     }
     
@@ -62,7 +63,7 @@ final class TransactionListViewModel: ObservableObject {
             }
             fetchTransactions()
         } catch {
-            errorMessage = "Couldn't delete transactions. Please try again."
+            errorMessage = (error as? AppError)?.errorDescription ?? AppError.persistence(error).errorDescription
         }
     }
 }

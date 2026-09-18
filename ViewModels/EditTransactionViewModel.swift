@@ -53,7 +53,7 @@ final class EditTransactionViewModel: ObservableObject {
             try repository.save(transaction)
             return true
         } catch {
-            errorMessage = "Couldn't save changes. Please try again."
+            errorMessage = (error as? AppError)?.errorDescription ?? AppError.persistence(error).errorDescription
             return false
         }
     }

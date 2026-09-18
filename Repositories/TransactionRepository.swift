@@ -30,17 +30,29 @@ final class CoreDataTransactionRepository: TransactionRepository {
     func fetchAll() throws -> [TransactionEntity] {
         let request: NSFetchRequest<TransactionEntity> = TransactionEntity.fetchRequest()
         request.sortDescriptors = [NSSortDescriptor(keyPath: \TransactionEntity.date, ascending: false)]
-        return try context.fetch(request)
+        do {
+            return try context.fetch(request)
+        } catch {
+            throw AppError.persistence(error)
+        }
     }
     
     
     func save(_ transaction: TransactionEntity) throws {
-        try context.save()
+        do {
+            try context.save()
+        } catch {
+            throw AppError.persistence(error)
+        }
     }
     
     func delete(_ transaction: TransactionEntity) throws {
         context.delete(transaction)
-        try context.save()
+        do {
+            try context.save()
+        } catch {
+            throw AppError.persistence(error)
+        }
     }
     
     func makeNewTransaction() -> TransactionEntity {
@@ -49,23 +61,40 @@ final class CoreDataTransactionRepository: TransactionRepository {
     
     func fetchBudgets() throws -> [BudgetEntity] {
         let request: NSFetchRequest<BudgetEntity> = BudgetEntity.fetchRequest()
-        return try context.fetch(request)
+        do {
+            return try context.fetch(request)
+        } catch {
+            throw AppError.persistence(error)
+        }
     }
     
     func saveBudget(category: String, limit: Double) throws {
+        guard limit > 0 else {
+            throw AppError.invalidInput("Budget must be greater than 0.")
+        }
+        
         let request: NSFetchRequest<BudgetEntity> = BudgetEntity.fetchRequest()
         request.predicate = NSPredicate(format: "category == %@", category)
-        let existing = try context.fetch(request).first
         
-        let budget = existing ?? BudgetEntity(context: context)
-        budget.category = category
-        budget.limit = limit
-        
-        try context.save()
+        do {
+            let existing = try context.fetch(request).first
+            let budget = existing ?? BudgetEntity(context: context)
+            budget.category = category
+            budget.limit = limit
+            try context.save()
+        } catch let error as AppError {
+            throw error
+        } catch {
+            throw AppError.persistence(error)
+        }
     }
     
     func deleteBudget(_ budget: BudgetEntity) throws {
         context.delete(budget)
-        try context.save()
+        do {
+            try context.save()
+        } catch {
+            throw AppError.persistence(error)
+        }
     }
 }
