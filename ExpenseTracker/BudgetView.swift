@@ -1,11 +1,3 @@
-//
-//  BudgetView.swift
-//  ExpenseTracker
-//
-//  Created by Iren Poghosyan on 15.09.26.
-//
-
-
 import SwiftUI
 
 struct BudgetView: View {
@@ -71,16 +63,16 @@ struct BudgetView: View {
             .navigationTitle("Budgets")
             .toolbar {
                 ToolbarItem {
-                    Button(action: { showingAddBudget = true }) {
+                    Button(action: { showingAddBudget = true }, label: {
                         Label("Set Budget", systemImage: "plus")
-                    }
+                    })
                 }
             }
             .sheet(isPresented: $showingAddBudget, onDismiss: {
                 viewModel.loadBudgets()
-            }) {
+            }, content: {
                 SetBudgetView(viewModel: viewModel)
-            }
+            })
             .alert("Error", isPresented: .constant(viewModel.errorMessage != nil)) {
                 Button("OK") { viewModel.errorMessage = nil }
             } message: {

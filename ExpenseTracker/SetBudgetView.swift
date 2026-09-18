@@ -5,7 +5,6 @@
 //  Created by Iren Poghosyan on 15.09.26.
 //
 
-
 import SwiftUI
 
 struct SetBudgetView: View {

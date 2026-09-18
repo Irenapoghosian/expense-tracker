@@ -5,10 +5,8 @@
 //  Created by Iren Poghosyan on 15.09.26.
 //
 
-
 import SwiftUI
 import Charts
-
 
 struct CategoryBreakdownView: View {
     @StateObject private var viewModel: CategoryBreakdownViewModel

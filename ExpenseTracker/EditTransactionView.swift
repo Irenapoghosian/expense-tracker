@@ -5,11 +5,9 @@
 //  Created by Iren Poghosyan on 15.09.26.
 //
 
-
 import SwiftUI
 import UIKit
 import CoreData
-
 
 struct EditTransactionView: View {
     @Environment(\.dismiss) private var dismiss

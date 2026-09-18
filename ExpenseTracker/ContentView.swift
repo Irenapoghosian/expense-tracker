@@ -78,6 +78,10 @@ struct ContentView: View {
             .font(.headline)
             .animation(.easeInOut(duration: 0.3), value: viewModel.totalAmount)
     }
+    
+    private var rowAnimation: Animation {
+        .spring(response: 0.4, dampingFraction: 0.8)
+    }
  
     private func handleAddTapped() {
         let generator = UIImpactFeedbackGenerator(style: .medium)
@@ -139,7 +143,10 @@ struct ContentView: View {
                         }
                         .onDelete(perform: handleDelete)
                     }
-                    .animation(.spring(response: 0.4, dampingFraction: 0.8), value: viewModel.filteredTransactions.map(\.objectID))
+                    .animation(
+                        rowAnimation,
+                        value: viewModel.filteredTransactions.map(\.objectID)
+                    )
                 }
             }
             .navigationTitle("Expenses")
@@ -156,14 +163,14 @@ struct ContentView: View {
             }
             .sheet(isPresented: $showingAddTransaction, onDismiss: {
                 viewModel.fetchTransactions()
-            }) {
+            }, content: {
                 AddTransactionView(repository: repository)
-            }
+            })
             .sheet(item: $transactionToEdit, onDismiss: {
                 viewModel.fetchTransactions()
-            }) { transaction in
+            }, content: { transaction in
                 EditTransactionView(transaction: transaction, repository: repository)
-            }
+            })
             .alert("Error", isPresented: .constant(viewModel.errorMessage != nil)) {
                 Button("OK") { viewModel.errorMessage = nil }
             } message: {

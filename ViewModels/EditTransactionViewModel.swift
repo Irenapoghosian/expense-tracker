@@ -5,11 +5,9 @@
 //  Created by Iren Poghosyan on 15.09.26.
 //
 
-
 import Foundation
 import CoreData
 import Combine
-
 
 final class EditTransactionViewModel: ObservableObject {
     @Published var title: String

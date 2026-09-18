@@ -37,7 +37,6 @@ enum AppTheme: String, CaseIterable, Identifiable {
     }
 }
 
-
 struct SettingsView: View {
     @AppStorage("appTheme") private var appTheme: AppTheme = .system
     

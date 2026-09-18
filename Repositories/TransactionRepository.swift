@@ -5,7 +5,6 @@
 //  Created by Iren Poghosyan on 14.09.26.
 //
 
-
 import Foundation
 import CoreData
 
@@ -36,7 +35,6 @@ final class CoreDataTransactionRepository: TransactionRepository {
             throw AppError.persistence(error)
         }
     }
-    
     
     func save(_ transaction: TransactionEntity) throws {
         do {

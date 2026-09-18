@@ -5,7 +5,6 @@
 //  Created by Iren Poghosyan on 15.09.26.
 //
 
-
 import SwiftUI
 
 struct OnboardingPage {
@@ -14,7 +13,6 @@ struct OnboardingPage {
     let title: String
     let description: String
 }
-
 
 private struct OnboardingPageView: View {
     let page: OnboardingPage
@@ -71,6 +69,14 @@ struct OnboardingView: View {
             description: "Define monthly limits per category and get notified when you're close to going over."
         )
     ]
+    
+    private func advance() {
+        if currentPage < pages.count - 1 {
+            withAnimation { currentPage += 1 }
+        } else {
+            withAnimation { isPresented = false }
+        }
+    }
 
     var body: some View {
             ZStack {
@@ -85,13 +91,7 @@ struct OnboardingView: View {
      
                 VStack {
                     Spacer()
-                    Button(action: {
-                        if currentPage < pages.count - 1 {
-                            withAnimation { currentPage += 1 }
-                        } else {
-                            withAnimation { isPresented = false }
-                        }
-                    }) {
+                    Button(action: advance, label: {
                         Text(currentPage < pages.count - 1 ? "Next" : "Get Started")
                             .font(.headline)
                             .foregroundColor(.white)
@@ -99,7 +99,7 @@ struct OnboardingView: View {
                             .padding()
                             .background(pages[currentPage].color.gradient)
                             .clipShape(RoundedRectangle(cornerRadius: 14))
-                    }
+                    })
                     .padding(.horizontal, 32)
                     .padding(.bottom, 50)
      
