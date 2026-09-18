@@ -7,14 +7,17 @@ on:
     branches: [ main ]
 
 jobs:
-  build:
+  test:
     runs-on: macos-15
     steps:
       - uses: actions/checkout@v4
 
-      - name: Build project
+      - name: Show available simulators
+        run: xcrun simctl list devicetypes
+
+      - name: Run tests
         run: |
-          xcodebuild build \
+          xcodebuild test \
             -project ExpenseTracker.xcodeproj \
             -scheme ExpenseTracker \
-            -destination 'generic/platform=iOS Simulator'
+            -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest'

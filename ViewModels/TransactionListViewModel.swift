@@ -17,10 +17,21 @@ final class TransactionListViewModel: ObservableObject {
     let categories = ["all", "food", "transport", "entertainment", "bills", "other"]
     
     private var repository: TransactionRepository
+    private var cancellables = Set<AnyCancellable>()
     
     init(repository: TransactionRepository) {
         self.repository = repository
         fetchTransactions()
+        observeRemoteChanges()
+    }
+    
+    private func observeRemoteChanges() {
+           NotificationCenter.default.publisher(for: .dataStoreDidChange)
+               .receive(on: DispatchQueue.main)
+               .sink { [weak self] _ in
+                   self?.fetchTransactions()
+               }
+               .store(in: &cancellables)
     }
     
     var filteredTransactions: [TransactionEntity] {

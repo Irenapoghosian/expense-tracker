@@ -11,23 +11,45 @@ import CoreData
 @main
 struct ExpenseTrackerApp: App {
     let persistenceController = PersistenceController.shared
+    @AppStorage("hasSeenOnboarding") private var hasSeenOnboarding = false
+    @AppStorage("appTheme") private var appTheme: AppTheme = .system
 
     var body: some Scene {
-            WindowGroup {
-                let repository = CoreDataTransactionRepository(context: persistenceController.container.viewContext)
+        WindowGroup {
+            let repository = CoreDataTransactionRepository(context: persistenceController.container.viewContext)
+
+            TabView {
+                ContentView(repository: repository)
+                    .tabItem {
+                        Label("Expenses", systemImage: "list.bullet")
+                    }
+
+                BudgetView(repository: repository)
+                    .tabItem {
+                        Label("Budgets", systemImage: "chart.pie")
+                    }
+
+                CategoryBreakdownView(repository: repository)
+                    .tabItem {
+                        Label("Breakdown", systemImage: "chart.pie")
+                    }
                 
-                TabView {
-                    ContentView(repository: repository)
-                        .tabItem {
-                            Label("Expenses", systemImage: "list.bullet")
-                        }
-                    
-                    CategoryBreakdownView(repository: repository)
-                        .tabItem {
-                            Label("Breakdown", systemImage: "chart.pie")
-                        }
-                }
-                .environment(\.managedObjectContext, persistenceController.container.viewContext)
+                SettingsView()
+                    .tabItem {
+                        Label("Settings", systemImage: "gearshape")
+                    }
+            }
+            .environment(\.managedObjectContext, persistenceController.container.viewContext)
+            .preferredColorScheme(appTheme.colorScheme)
+            .fullScreenCover(isPresented: .init(
+                get: { !hasSeenOnboarding },
+                set: { hasSeenOnboarding = !$0 }
+            )) {
+                OnboardingView(isPresented: .init(
+                    get: { !hasSeenOnboarding },
+                    set: { hasSeenOnboarding = !$0 }
+                ))
             }
         }
     }
+}

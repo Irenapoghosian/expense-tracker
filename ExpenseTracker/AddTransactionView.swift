@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import UIKit
 import CoreData
 
 struct AddTransactionView: View {
@@ -42,6 +43,8 @@ struct AddTransactionView: View {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Save") {
                         if viewModel.save() {
+                            let generator = UINotificationFeedbackGenerator()
+                            generator.notificationOccurred(.success)
                             dismiss()
                         }
                     }
