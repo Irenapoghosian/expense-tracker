@@ -31,6 +31,7 @@ struct SetBudgetView: View {
                     
                     TextField("Monthly limit", text: $limitText)
                         .keyboardType(.decimalPad)
+                        .accessibilityHint("Enter the monthly limit in US dollars")
                 }
             }
             .navigationTitle("Set budget")
@@ -48,6 +49,7 @@ struct SetBudgetView: View {
                         }
                     }
                     .disabled(!isValid)
+                    .accessibilityHint(isValid ? "" : "Enter a monthly limit greater than zero first")
                 }
             }
         }

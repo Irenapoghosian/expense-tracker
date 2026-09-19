@@ -24,12 +24,14 @@ struct CategoryBreakdownView: View {
                         Image(systemName: "chart.pie")
                             .font(.system(size: 40))
                             .foregroundColor(.secondary)
+                            .accessibilityHidden(true)
                         Text("No data yet")
                             .font(.headline)
                         Text("Add some transactions to see the breakdown")
                             .font(.subheadline)
                             .foregroundColor(.secondary)
                     }
+                    .accessibilityElement(children: .combine)
                     Spacer()
                 } else {
                     Chart(viewModel.breakdown) { item in
@@ -43,6 +45,7 @@ struct CategoryBreakdownView: View {
                     }
                     .frame(height: 260)
                     .padding()
+                    .accessibilityHidden(true)
 
                     List(viewModel.breakdown) { item in
                         HStack {
@@ -51,6 +54,7 @@ struct CategoryBreakdownView: View {
                             Text(item.amount, format: .currency(code: "USD"))
                                 .foregroundColor(.secondary)
                         }
+                        .accessibilityElement(children: .combine)
                     }
                 }
             }

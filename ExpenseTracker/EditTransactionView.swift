@@ -22,8 +22,10 @@ struct EditTransactionView: View {
             Form {
                 Section(header: Text("Details")) {
                     TextField("Title", text: $viewModel.title)
+                        .accessibilityHint("Enter a short name for this expense")
                     TextField("Amount", text: $viewModel.amount)
                         .keyboardType(.decimalPad)
+                        .accessibilityHint("Enter the amount in US dollars")
                     Picker("Category", selection: $viewModel.category) {
                         ForEach(viewModel.categories, id: \.self) { cat in
                             Label(Category.from(cat).displayName, systemImage: Category.from(cat).icon)
@@ -49,6 +51,7 @@ struct EditTransactionView: View {
                         }
                     }
                     .disabled(!viewModel.isValid)
+                    .accessibilityHint(viewModel.isValid ? "" : "Enter a title and a valid amount first")
                 }
             }
             .alert("Error", isPresented: .constant(viewModel.errorMessage != nil)) {

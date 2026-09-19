@@ -52,6 +52,7 @@ struct SettingsView: View {
                     }
                     .pickerStyle(.inline)
                     .labelsHidden()
+                    .accessibilityLabel("Theme")
                 }
                 
                 Section(header: Text("About")) {
@@ -61,6 +62,7 @@ struct SettingsView: View {
                         Text("1.0.0")
                             .foregroundColor(.secondary)
                     }
+                    .accessibilityElement(children: .combine)
                 }
             }
             .navigationTitle("Settings")

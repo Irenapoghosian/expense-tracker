@@ -14,6 +14,7 @@ private struct TransactionRow: View {
                 .frame(width: 36, height: 36)
                 .background(category.color)
                 .clipShape(Circle())
+                .accessibilityHidden(true)
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(transaction.title ?? "Untitled")
@@ -28,6 +29,9 @@ private struct TransactionRow: View {
         }
         .padding(.vertical, 4)
         .transition(rowTransition)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(transaction.title ?? "Untitled"), \(category.displayName)")
+        .accessibilityValue(Text(transaction.amount, format: .currency(code: "USD")))
     }
 
     private var rowTransition: AnyTransition {
@@ -45,6 +49,7 @@ private struct EmptyTransactionsView: View {
             Image(systemName: hasSearchText ? "magnifyingglass" : "tray")
                 .font(.system(size: 40))
                 .foregroundColor(.secondary)
+                .accessibilityHidden(true)
             Text(hasSearchText ? "No matching transactions" : "No transactions yet")
                 .font(.headline)
             Text(hasSearchText ? "Try a different search term" : "Tap + to add your first expense")
@@ -52,6 +57,7 @@ private struct EmptyTransactionsView: View {
                 .foregroundColor(.secondary)
         }
         .transition(.opacity.combined(with: .scale(scale: 0.95)))
+        .accessibilityElement(children: .combine)
     }
 }
 
@@ -71,6 +77,8 @@ private struct SortMenu: View {
         } label: {
             Label("Sort", systemImage: "arrow.up.arrow.down")
         }
+        .accessibilityLabel("Sort transactions")
+        .accessibilityHint("Currently sorted: \(sortOption.label)")
     }
 }
 
@@ -143,6 +151,7 @@ struct ContentView: View {
                 .pickerStyle(.segmented)
                 .padding(.horizontal)
                 .padding(.top, 8)
+                .accessibilityLabel("Filter by category")
 
                 HStack {
                     Text("Total")
@@ -153,6 +162,7 @@ struct ContentView: View {
                 }
                 .padding(.horizontal)
                 .padding(.vertical, 4)
+                .accessibilityElement(children: .combine)
 
                 if viewModel.filteredTransactions.isEmpty {
                     Spacer()
@@ -166,6 +176,8 @@ struct ContentView: View {
                                 .onTapGesture {
                                     transactionToEdit = transaction
                                 }
+                                .accessibilityAddTraits(.isButton)
+                                .accessibilityHint("Double tap to edit")
                         }
                         .onDelete(perform: handleDelete)
                     }
@@ -183,6 +195,7 @@ struct ContentView: View {
                         Label("Export CSV", systemImage: "square.and.arrow.up")
                     })
                     .disabled(viewModel.filteredTransactions.isEmpty)
+                    .accessibilityHint("Exports the visible transactions as a CSV file")
                 }
                 ToolbarItem(placement: .navigationBarTrailing) {
                     SortMenu(sortOption: $viewModel.sortOption)
