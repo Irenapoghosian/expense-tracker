@@ -4,6 +4,10 @@ A native iOS expense-tracking app built with SwiftUI and Core Data, focused on c
 
 ![Build Check](https://github.com/Irenapoghosian/expense-tracker/actions/workflows/tests.yml/badge.svg)
 
+## Demo
+
+![Demo](Screenshots/demo.gif)
+
 ## Screenshots
 
 | Expenses | Add Transaction | Budgets |
