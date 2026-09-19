@@ -66,6 +66,9 @@ struct ContentView: View {
     @State private var showingAddTransaction = false
     @State private var transactionToEdit: TransactionEntity?
     @State private var addButtonPressed = false
+    @State private var exportURL: URL?
+    @State private var showingShareSheet = false
+    @State private var showingExportError = false
     private let repository: TransactionRepository
  
     init(repository: TransactionRepository) {
@@ -104,6 +107,15 @@ struct ContentView: View {
         withAnimation(.easeInOut(duration: 0.3)) {
             viewModel.deleteTransactions(at: offsets)
         }
+    }
+    
+    private func handleExportTapped() {
+        guard let url = CSVExporter.exportToTemporaryFile(transactions: viewModel.filteredTransactions) else {
+            showingExportError = true
+            return
+        }
+        exportURL = url
+        showingShareSheet = true
     }
  
     var body: some View {
@@ -152,12 +164,16 @@ struct ContentView: View {
             .navigationTitle("Expenses")
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    EditButton()
+                    Button(action: handleExportTapped, label: {
+                        Label("Export CSV", systemImage: "square.and.arrow.up")
+                    })
+                    .disabled(viewModel.filteredTransactions.isEmpty)
+                   
                 }
                 ToolbarItem {
-                    Button(action: handleAddTapped) {
+                    Button(action: handleAddTapped, label : {
                         Label("Add Transaction", systemImage: "plus")
-                    }
+                    })
                     .scaleEffect(addButtonPressed ? 1.3 : 1.0)
                 }
             }
@@ -171,10 +187,20 @@ struct ContentView: View {
             }, content: { transaction in
                 EditTransactionView(transaction: transaction, repository: repository)
             })
+            .sheet(isPresented: $showingShareSheet, content: {
+                if let exportURL {
+                    ShareSheet(activityItems: [exportURL])
+                }
+            })
             .alert("Error", isPresented: .constant(viewModel.errorMessage != nil)) {
                 Button("OK") { viewModel.errorMessage = nil }
             } message: {
                 Text(viewModel.errorMessage ?? "")
+            }
+            .alert("Export Failed", isPresented: $showingExportError) {
+                Button("OK") { showingExportError = false }
+            } message: {
+                Text("Could not create the CSV file. Please try again.")
             }
             .animation(.easeInOut(duration: 0.25), value: viewModel.filteredTransactions.isEmpty)
         }
