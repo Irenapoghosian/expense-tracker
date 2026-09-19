@@ -1,17 +1,10 @@
-//
-//  ContentView.swift
-//  ExpenseTracker
-//
-//  Created by Iren Poghosyan on 14.09.26.
-//
-
 import SwiftUI
 import UIKit
 import CoreData
- 
+
 private struct TransactionRow: View {
     let transaction: TransactionEntity
- 
+
     var body: some View {
         let category = Category.from(transaction.category)
         HStack(spacing: 12) {
@@ -21,7 +14,7 @@ private struct TransactionRow: View {
                 .frame(width: 36, height: 36)
                 .background(category.color)
                 .clipShape(Circle())
- 
+
             VStack(alignment: .leading, spacing: 2) {
                 Text(transaction.title ?? "Untitled")
                     .font(.headline)
@@ -36,30 +29,51 @@ private struct TransactionRow: View {
         .padding(.vertical, 4)
         .transition(rowTransition)
     }
- 
+
     private var rowTransition: AnyTransition {
         let insertion: AnyTransition = .move(edge: .trailing).combined(with: .opacity)
         let removal: AnyTransition = .move(edge: .leading).combined(with: .opacity)
         return .asymmetric(insertion: insertion, removal: removal)
     }
 }
- 
+
 private struct EmptyTransactionsView: View {
+    let hasSearchText: Bool
+
     var body: some View {
         VStack(spacing: 8) {
-            Image(systemName: "tray")
+            Image(systemName: hasSearchText ? "magnifyingglass" : "tray")
                 .font(.system(size: 40))
                 .foregroundColor(.secondary)
-            Text("No transactions yet")
+            Text(hasSearchText ? "No matching transactions" : "No transactions yet")
                 .font(.headline)
-            Text("Tap + to add your first expense")
+            Text(hasSearchText ? "Try a different search term" : "Tap + to add your first expense")
                 .font(.subheadline)
                 .foregroundColor(.secondary)
         }
         .transition(.opacity.combined(with: .scale(scale: 0.95)))
     }
 }
- 
+
+private struct SortMenu: View {
+    @Binding var sortOption: TransactionSortOption
+
+    var body: some View {
+        Menu {
+            ForEach(TransactionSortOption.allCases) { option in
+                Button(action: { sortOption = option }, label: {
+                    Label(option.label, systemImage: option.icon)
+                    if sortOption == option {
+                        Image(systemName: "checkmark")
+                    }
+                })
+            }
+        } label: {
+            Label("Sort", systemImage: "arrow.up.arrow.down")
+        }
+    }
+}
+
 struct ContentView: View {
     @Environment(\.managedObjectContext) private var viewContext
     @StateObject private var viewModel: TransactionListViewModel
@@ -70,26 +84,26 @@ struct ContentView: View {
     @State private var showingShareSheet = false
     @State private var showingExportError = false
     private let repository: TransactionRepository
- 
+
     init(repository: TransactionRepository) {
         self.repository = repository
         _viewModel = StateObject(wrappedValue: TransactionListViewModel(repository: repository))
     }
- 
+
     private var totalAmountText: some View {
         Text(viewModel.totalAmount, format: .currency(code: "USD"))
             .font(.headline)
             .animation(.easeInOut(duration: 0.3), value: viewModel.totalAmount)
     }
-    
+
     private var rowAnimation: Animation {
         .spring(response: 0.4, dampingFraction: 0.8)
     }
- 
+
     private func handleAddTapped() {
         let generator = UIImpactFeedbackGenerator(style: .medium)
         generator.impactOccurred()
- 
+
         withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
             addButtonPressed = true
         }
@@ -100,7 +114,7 @@ struct ContentView: View {
         }
         showingAddTransaction = true
     }
- 
+
     private func handleDelete(at offsets: IndexSet) {
         let generator = UINotificationFeedbackGenerator()
         generator.notificationOccurred(.warning)
@@ -108,7 +122,7 @@ struct ContentView: View {
             viewModel.deleteTransactions(at: offsets)
         }
     }
-    
+
     private func handleExportTapped() {
         guard let url = CSVExporter.exportToTemporaryFile(transactions: viewModel.filteredTransactions) else {
             showingExportError = true
@@ -117,7 +131,7 @@ struct ContentView: View {
         exportURL = url
         showingShareSheet = true
     }
- 
+
     var body: some View {
         NavigationView {
             VStack(spacing: 0) {
@@ -129,7 +143,7 @@ struct ContentView: View {
                 .pickerStyle(.segmented)
                 .padding(.horizontal)
                 .padding(.top, 8)
- 
+
                 HStack {
                     Text("Total")
                         .font(.subheadline)
@@ -139,10 +153,10 @@ struct ContentView: View {
                 }
                 .padding(.horizontal)
                 .padding(.vertical, 4)
- 
+
                 if viewModel.filteredTransactions.isEmpty {
                     Spacer()
-                    EmptyTransactionsView()
+                    EmptyTransactionsView(hasSearchText: !viewModel.searchText.isEmpty)
                     Spacer()
                 } else {
                     List {
@@ -162,16 +176,22 @@ struct ContentView: View {
                 }
             }
             .navigationTitle("Expenses")
+            .searchable(text: $viewModel.searchText, prompt: "Search transactions")
             .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
+                ToolbarItem(placement: .navigationBarLeading) {
                     Button(action: handleExportTapped, label: {
                         Label("Export CSV", systemImage: "square.and.arrow.up")
                     })
                     .disabled(viewModel.filteredTransactions.isEmpty)
-                   
+                }
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    SortMenu(sortOption: $viewModel.sortOption)
+                }
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    EditButton()
                 }
                 ToolbarItem {
-                    Button(action: handleAddTapped, label : {
+                    Button(action: handleAddTapped, label: {
                         Label("Add Transaction", systemImage: "plus")
                     })
                     .scaleEffect(addButtonPressed ? 1.3 : 1.0)
@@ -206,7 +226,7 @@ struct ContentView: View {
         }
     }
 }
- 
+
 #Preview {
     ContentView(repository: CoreDataTransactionRepository(context: PersistenceController.preview.container.viewContext))
 }
