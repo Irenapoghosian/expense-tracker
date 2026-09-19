@@ -63,6 +63,10 @@ struct SettingsView: View {
                             .foregroundColor(.secondary)
                     }
                     .accessibilityElement(children: .combine)
+
+                    NavigationLink(destination: PrivacyPolicyView()) {
+                        Label("Privacy Policy", systemImage: "hand.raised")
+                    }
                 }
             }
             .navigationTitle("Settings")
