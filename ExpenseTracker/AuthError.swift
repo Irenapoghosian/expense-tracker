@@ -26,7 +26,7 @@ enum AuthError: LocalizedError {
         case .invalidCredentials:
             return "Incorrect username or password."
         case .weakPassword:
-            return "Password must be at least 6 characters."
+            return "Password must be at least 6 characters, with at least one uppercase letter and one number."
         case .passwordsDoNotMatch:
             return "Passwords do not match."
         case .emptyFields:
