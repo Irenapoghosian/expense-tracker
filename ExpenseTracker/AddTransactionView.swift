@@ -66,3 +66,4 @@ struct AddTransactionView: View {
 #Preview {
     AddTransactionView(repository: CoreDataTransactionRepository(context: PersistenceController.preview.container.viewContext))
 }
+

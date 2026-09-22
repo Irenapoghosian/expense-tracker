@@ -43,18 +43,51 @@ private struct TransactionRow: View {
 
 private struct EmptyTransactionsView: View {
     let hasSearchText: Bool
+    let isCategoryFiltered: Bool
+    let onAddTapped: () -> Void
 
     var body: some View {
-        VStack(spacing: 8) {
-            Image(systemName: hasSearchText ? "magnifyingglass" : "tray")
-                .font(.system(size: 40))
-                .foregroundColor(.secondary)
-                .accessibilityHidden(true)
-            Text(hasSearchText ? "No matching transactions" : "No transactions yet")
-                .font(.headline)
-            Text(hasSearchText ? "Try a different search term" : "Tap + to add your first expense")
-                .font(.subheadline)
-                .foregroundColor(.secondary)
+        VStack(spacing: 12) {
+            if hasSearchText {
+                Image(systemName: "magnifyingglass")
+                    .font(.system(size: 40))
+                    .foregroundColor(.secondary)
+                    .accessibilityHidden(true)
+                Text("No matching transactions")
+                    .font(.headline)
+                Text("Try a different search term")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+            } else if isCategoryFiltered {
+                Image(systemName: "tray")
+                    .font(.system(size: 40))
+                    .foregroundColor(.secondary)
+                    .accessibilityHidden(true)
+                Text("No transactions in this category")
+                    .font(.headline)
+                Text("Try a different category, or add a new expense")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+            } else {
+                Image(systemName: "sparkles")
+                    .font(.system(size: 44))
+                    .foregroundStyle(.blue.gradient)
+                    .accessibilityHidden(true)
+                Text("Welcome to ExpenseTracker!")
+                    .font(.title3.bold())
+                Text("Track where your money goes, one expense at a time.")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 32)
+                Button(action: onAddTapped) {
+                    Label("Add Your First Expense", systemImage: "plus.circle.fill")
+                        .font(.headline)
+                }
+                .buttonStyle(.borderedProminent)
+                .padding(.top, 8)
+                .accessibilityHint("Opens the form to add your first expense")
+            }
         }
         .transition(.opacity.combined(with: .scale(scale: 0.95)))
         .accessibilityElement(children: .combine)
@@ -166,7 +199,11 @@ struct ContentView: View {
 
                 if viewModel.filteredTransactions.isEmpty {
                     Spacer()
-                    EmptyTransactionsView(hasSearchText: !viewModel.searchText.isEmpty)
+                    EmptyTransactionsView(
+                        hasSearchText: !viewModel.searchText.isEmpty,
+                        isCategoryFiltered: viewModel.searchText.isEmpty && viewModel.selectedCategory != viewModel.categories.first,
+                        onAddTapped: handleAddTapped
+                    )
                     Spacer()
                 } else {
                     List {
